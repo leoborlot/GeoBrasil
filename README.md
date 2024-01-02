@@ -1,4 +1,4 @@
-# EstadosBrasil - Manual do Usuário
+# GeoBrasil - Manual do Usuário
 
 Este documento serve como um guia para a utilização da classe `EstadosBrasil`, que oferece métodos para acessar e transformar informações sobre os estados do Brasil.
 
@@ -11,7 +11,7 @@ Retorna o nome completo do estado com base na sua sigla (UF).
 
 **Exemplo**:
 ```python
-print(estado_br.estado_from_uf("RJ"))
+print(GeoBrasil.estado_from_uf("RJ"))
 # Saída: Rio de Janeiro
 ```
 
@@ -22,7 +22,7 @@ Retorna o nome do estado com base no DDD fornecido.
 
 **Exemplo**:
 ```python
-print(estado_br.estado_from_ddd("21"))
+print(GeoBrasil.estado_from_ddd("21"))
 # Saída: Rio de Janeiro
 ```
 
@@ -33,7 +33,7 @@ Retorna os códigos DDD associados ao nome do estado.
 
 **Exemplo**:
 ```python
-print(estado_br.ddd_from_estado("Bahia"))
+print(GeoBrasil.ddd_from_estado("Bahia"))
 # Saída: ['71', '73', '74', '75', '77']
 ```
 
@@ -44,7 +44,7 @@ Retorna o código de identificação da UF com base na sigla.
 
 **Exemplo**:
 ```python
-print(estado_br.ufc_from_uf("SP"))
+print(GeoBrasil.ufc_from_uf("SP"))
 # Saída: 35
 ```
 
@@ -55,7 +55,7 @@ Retorna a região do Brasil a que o estado pertence.
 
 **Exemplo**:
 ```python
-print(estado_br.reg_from_estado("MG"))
+print(GeoBrasil.reg_from_estado("MG"))
 # Saída: Sudeste
 ```
 
@@ -66,7 +66,7 @@ Retorna uma lista de estados pertencentes a uma região específica.
 
 **Exemplo**:
 ```python
-print(estado_br.estados_from_reg("Sul"))
+print(GeoBrasil.estados_from_reg("Sul"))
 # Saída: ['Paraná', 'Rio Grande do Sul', 'Santa Catarina']
 ```
 
@@ -77,7 +77,7 @@ Retorna informações detalhadas sobre o estado.
 
 **Exemplo**:
 ```python
-print(estado_br.estado_info("PR"))
+print(GeoBrasil.estado_info("PR"))
 # Saída: {'Nome': 'Paraná', 'Região': 'Sul'}
 ```
 
@@ -88,7 +88,7 @@ Converte a entrada para a sigla do estado em letras maiúsculas.
 
 **Exemplo**:
 ```python
-print(estado_br.short_up("paraná"))
+print(GeoBrasil.short_up("paraná"))
 # Saída: PR
 ```
 
@@ -99,7 +99,7 @@ Converte a entrada para a sigla do estado em letras minúsculas.
 
 **Exemplo**:
 ```python
-print(estado_br.short_low("RJ"))
+print(GeoBrasil.short_low("RJ"))
 # Saída: rj
 ```
 
@@ -110,7 +110,7 @@ Converte a entrada para o nome completo do estado em letras maiúsculas.
 
 **Exemplo**:
 ```python
-print(estado_br.extend_up("sc"))
+print(GeoBrasil.extend_up("sc"))
 # Saída: SANTA CATARINA
 ```
 
@@ -121,7 +121,7 @@ Converte a entrada para o nome completo do estado em letras minúsculas.
 
 **Exemplo**:
 ```python
-print(estado_br.extend_low("PA"))
+print(GeoBrasil.extend_low("PA"))
 # Saída: pará
 ```
 
@@ -132,7 +132,7 @@ Converte a entrada para uma versão 'slug' do nome do estado: em minúsculas, se
 
 **Exemplo**:
 ```python
-print(estado_br.extend_slug("Rio de Janeiro"))
+print(GeoBrasil.extend_slug("Rio de Janeiro"))
 # Saída: rio_de_janeiro
 ```
 
