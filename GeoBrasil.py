@@ -1,8 +1,29 @@
 # GeoBrasil
 import unicodedata
+import re
+from functools import wraps
+
+def verifica_tipo(*tipos_permitidos):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, entrada, *args, **kwargs):
+            # Se a entrada estiver vazia, retorna vazio
+            if not entrada:
+                return ""
+
+            tipo_entrada = self.identificar_tipo(entrada)
+            if tipo_entrada not in tipos_permitidos:
+                return f"Erro: entrada do tipo '{tipo_entrada}' não é permitida para este método."
+            return func(self, entrada, *args, **kwargs)
+        return wrapper
+    return decorator
+
 
 class GeoBrasil:
     def __init__(self):
+
+        self.regioes = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul']
+
         self.estados = {
             'AC': 'Acre', 'AL': 'Alagoas', 'AP': 'Amapá', 'AM': 'Amazonas', 
             'BA': 'Bahia', 'CE': 'Ceará', 'DF': 'Distrito Federal', 'ES': 'Espírito Santo',
@@ -37,6 +58,8 @@ class GeoBrasil:
 
         self.estado_to_ddd = {estado: [ddd for ddd, est in self.ddd_to_estado.items() if est == estado]
                               for estado in self.estados.values()}
+        
+        self.nome_to_uf = {nome: uf for uf, nome in self.estados.items()}
 
         self.ufc_to_estado = [
             {'codigo_uf': 12, 'uf': 'AC', 'unidade_federativa': 'Acre'},
@@ -106,50 +129,111 @@ class GeoBrasil:
             'Sul': ['Paraná', 'Rio Grande do Sul', 'Santa Catarina']
         }
 
+    @verifica_tipo('sigla')
     def estado_from_uf(self, uf):
+        if self.identificar_tipo(uf) != 'sigla':
+            return "Erro: entrada deve ser uma sigla"
         return self.estados.get(uf.upper(), "Estado não encontrado")
 
-    def estado_from_ddd(self, ddd):
-        return self.ddd_to_estado.get(ddd, "DDD não encontrado")
+    @verifica_tipo('extenso')
+    def uf_from_estado(self, estado_nome):
+        return self.nome_to_uf.get(estado_nome, "Sigla não encontrada")
 
+    @verifica_tipo('ddd')
+    def estado_from_ddd(self, ddd):
+         if not ddd.isdigit():
+            return "Erro: entrada deve ser um DDD numérico"
+
+    @verifica_tipo('ddd')
     def ddd_from_estado(self, estado_nome):
         return self.estado_to_ddd.get(estado_nome, [])
 
+    @verifica_tipo('ddd')
     def ufc_from_uf(self, uf):
         for estado in self.ufc_to_estado:
             if estado['uf'] == uf.upper():
                 return estado['codigo_uf']
         return "Código UF não encontrado"
 
+    @verifica_tipo('regiao')
     def reg_from_estado(self, uf):
         uf = uf.upper()
         return self.estado_info.get(uf, {}).get('Região', 'Região não encontrada')
 
+    @verifica_tipo('sigla', 'extenso')
     def estados_from_reg(self, regiao):
         return self.reg_to_estados.get(regiao, [])
 
+    @verifica_tipo('sigla', 'extenso')
     def estado_info(self, uf):
         uf = uf.upper()
         return self.estado_info.get(uf, "Informação não encontrada")
 
+    @verifica_tipo('sigla', 'extenso')
     def short_up(self, entrada):
-        entrada = entrada.upper()
-        return self.uf_to_nome.get(entrada, self.nome_to_uf.get(entrada.capitalize(), "Não encontrado")).upper()
+        tipo = self.identificar_tipo(entrada)
+        if tipo == 'sigla':
+            return entrada.upper()
+        elif tipo == 'extenso':
+            sigla = self.uf_from_estado(entrada)
+            return sigla.upper() if sigla != "Sigla não encontrada" else sigla
+        else:
+            return "Não encontrado"
 
+    @verifica_tipo('sigla', 'extenso')
     def short_low(self, entrada):
-        entrada = entrada.lower().capitalize()
-        return self.nome_to_uf.get(entrada, self.uf_to_nome.get(entrada.upper(), "Não encontrado")).lower()
+        tipo = self.identificar_tipo(entrada)
+        if tipo == 'sigla':
+            return entrada.lower()
+        elif tipo == 'extenso':
+            sigla = self.uf_from_estado(entrada)
+            return sigla.lower() if sigla != "Sigla não encontrada" else sigla
+        else:
+            return "Não encontrado"
 
+    @verifica_tipo('sigla', 'extenso')
     def extend_up(self, entrada):
-        entrada = entrada.upper()
-        return self.uf_to_nome.get(entrada, self.nome_to_uf.get(entrada.capitalize(), "Não encontrado")).upper()
+        tipo = self.identificar_tipo(entrada)
+        if tipo == 'sigla':
+            estado = self.estado_from_uf(entrada)
+            return estado.upper() if estado != "Estado não encontrado" else estado
+        elif tipo == 'extenso':
+            return entrada.upper()
+        else:
+            return "Não encontrado"
 
+    @verifica_tipo('sigla', 'extenso')
     def extend_low(self, entrada):
-        entrada = entrada.lower().capitalize()
-        return self.uf_to_nome.get(entrada.upper(), self.nome_to_uf.get(entrada, "Não encontrado")).lower()
+        tipo = self.identificar_tipo(entrada)
+        if tipo == 'sigla':
+            estado = self.estado_from_uf(entrada)
+            return estado.lower() if estado != "Estado não encontrado" else estado
+        elif tipo == 'extenso':
+            return entrada.lower()
+        else:
+            return "Não encontrado"
 
+    @verifica_tipo('sigla', 'extenso')
     def extend_slug(self, entrada):
-        nome_estado = self.uf_to_nome.get(entrada.upper(), self.nome_to_uf.get(entrada.capitalize(), "Não encontrado")).lower()
-        nome_estado = unicodedata.normalize('NFD', nome_estado).encode('ascii', 'ignore').decode('utf-8')
-        nome_estado = nome_estado.replace(' ', '_')
-        return nome_estado
+        tipo = self.identificar_tipo(entrada)
+        if tipo in ['sigla', 'extenso']:
+            nome_estado = self.estado_from_uf(entrada) if tipo == 'sigla' else entrada
+            nome_estado = unicodedata.normalize('NFD', nome_estado).encode('ascii', 'ignore').decode('utf-8')
+            return nome_estado.replace(' ', '_').lower()
+        else:
+            return "Não encontrado"
+
+    
+    def identificar_tipo(self, entrada):
+        entrada_normalizada = unicodedata.normalize('NFD', entrada).encode('ascii', 'ignore').decode('utf-8')
+        if re.fullmatch(r'[A-Z]{2}', entrada):
+            return 'sigla'
+        elif re.fullmatch(r'\d{2}', entrada):
+            return 'DDD'
+        elif entrada.title() in self.regioes:
+            return 'regiao'
+        elif entrada.title() in self.estados.values():
+            return 'extenso'
+        elif entrada_normalizada.replace(' ', '_').lower() == entrada:
+            return 'slug'
+        return 'desconhecido'
